@@ -1,0 +1,1 @@
+'bloch' is a simple blockchain, written in Python and served with Flask, intended to be a data-centric project. It is a school project.
