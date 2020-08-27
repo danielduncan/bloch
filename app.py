@@ -4,12 +4,40 @@
 import datetime
 # from app import app
 from flask import render_template, redirect, request
-import requests
 import time
 import hashlib
 import json
 
 from flask import Flask
+
+
+# instantiation of node
+app = Flask(__name__)
+
+# flask stuff
+@app.route('/')
+def init():
+    return 'working!'
+
+@app.route('/new_transaction', methods=['POST'])
+def new_transaction():
+    post_content = request.form["content"]
+    required_fields = ["content"]
+
+    post_object = {
+        'author': author,
+        'content': post_content,
+    }
+
+    new_tx_address = "{}/new_transaction".format(CONNECTED_NODE_ADDRESS)
+
+    requests.post(new_tx_address,
+                json=post_object,
+                headers={'content_type': 'application/json'})
+
+    # return to homepage
+    return redirect(['/'])
+
 
 def chrono():
 
@@ -31,7 +59,7 @@ def chrono():
 class block:
 
     def __init__(self, index, hash, previous_hash, value, timestamp):
-        print("blocks are initialising")
+        print("\nblocks are initialising")
         self.index = index
         # calling it hash is going to backfire
         self.hash = hash
@@ -40,11 +68,14 @@ class block:
         self.timestamp = timestamp
         print("blocks are initialised")
 
-    # doesn't work
-    ''' def block_hash(self):
-        hash = json.dumps(hash, sort_keys=True).encode()
-        hash = hashlib.sha256(hash).hexdigest()
-        return hash '''
+    def block_hash(self):
+        last_block = self.chain[-1]
+        new_index = last_block.index + 1
+
+        identifier_hash = json.dumps(new_index, sort_keys=True).encode()
+        identifier_hash = hashlib.sha256(identifier_hash).hexdigest()
+
+        return identifier_hash
 
     # crap
     def last_block(self):
@@ -55,15 +86,15 @@ class block:
 class blockchain:
 
     def __init__(self):
-        print("blockchain is initialising")
+        print("\nblockchain is initialising")
         self.chain = []
         self.current_transactions = []
-        print("blockchan is initialised")
+        print("blockchain is initialised")
 
     def create_genesis_block(self):
         genesis_block = block(0, '', 0, 0, time_since_genesis)
         self.chain.append(genesis_block)
-        print("genesis block initialised")
+        print("\ngenesis block initialised")
 
     # also crap
     def new_block(self):
@@ -72,13 +103,17 @@ class blockchain:
         new_index = last_block.index + 1
 
         # could this be any less secure
-        new_hash = hash(new_index)
+        new_hash = block.block_hash(self)
 
         new_value = input('enter the value of the block\n')
 
-        new_block = block(new_index,new_hash,last_block.hash,new_value,time_since_genesis)
+        block_timestamp = time.time() - time_of_genesis
+
+        new_block = block(new_index, new_hash, last_block.hash,
+                          new_value, block_timestamp)
 
         self.chain.append(new_block)
+
 
 def start_up():
 
@@ -86,10 +121,7 @@ def start_up():
 
     global blockchain
 
-    # instantiation of node
-    app = Flask(__name__)
-
-    #instantiation of blockchain
+    # instantiation of blockchain
     blockchain = blockchain()
 
     blockchain.create_genesis_block()
@@ -107,62 +139,41 @@ def print_chain():
 
     while(position <= length):
 
-        block = chain[position]
+        if position <= length-1:
 
-        print(' index: ', block.index, '\n', 'hash: ', block.hash, '\n', 'previous hash: ',
-              block.previous_hash, '\n', 'value: ', block.value, '\n', 'timestamp: ', block.timestamp)
+            block = chain[position]
 
-        position = position + 1
+            print(' index: ', block.index, '\n', 'hash: ', block.hash, '\n', 'previous hash: ',
+                  block.previous_hash, '\n', 'value: ', block.value, '\n', 'timestamp: ', block.timestamp, '\n')
 
-        break
+            position = position + 1
+
+        else:
+
+            break
+
 
 def commands():
 
-    user_choice = input('what do you wish to do?\n')
+    while True:
 
-    if user_choice == '1':
+        user_choice = input(
+            '\nwhat do you wish to do?\nenter 1 to print the blockchain\nenter 2 to add a new block to the blockchain\nenter EXIT to exit the program\n')
 
-        print_chain()
+        if user_choice == '1':
 
-    # very crap
-    if user_choice == '2':
+            print_chain()
 
-        blockchain.new_block()
+        # very crap
+        if user_choice == '2':
 
-    else:
+            blockchain.new_block()
 
-        return False
+        if user_choice == 'EXIT':
 
+            return False
 
-CONNECTED_NODE_ADDRESS = "https://127.0.0.1:8000"
-
-posts = []
-
-'''
-@app.route('/new_transaction', methods=['POST'])
-def new_transaction():
-    post_content = request.form["content"]
-    required_fields = ["content"]
-
-    post_object = {
-        'author': author,
-        'content': post_content,
-    }
-
-    new_tx_address = "{}/new_transaction".format(CONNECTED_NODE_ADDRESS)
-
-    requests.post(new_tx_address,
-                  json=post_object,
-                  headers={'content_type': 'application/json'})
-
-    # return to homepage
-    return redirect(['/'])
-'''
 
 start_up()
 
-while True:
-    
-    commands()    
-    
-    break
+commands()
