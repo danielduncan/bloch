@@ -1,4 +1,4 @@
-'bloch' is a simple blockchain, written in Python and served with Flask, intended to be a data-centric project. It was for a school project last year (2020), so it is not amazing.
+'bloch' is a simple blockchain, written in Python and served with Flask, intended to be a data-centric project. bloch was my year 11 Software Design and Development major project.
 
 TO RUN:
 1. Install Anaconda
